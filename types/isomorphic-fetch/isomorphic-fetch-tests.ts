@@ -1,142 +1,130 @@
-import fetchImportedViaCommonJS = require('isomorphic-fetch');
-import * as fetchImportedViaES6Module from 'isomorphic-fetch';
+import fetch, {
+    Blob,
+    Headers,
+    Request,
+    RequestInit,
+    Response,
+    FetchError
+} from "isomorphic-fetch";
 
-function test_isomorphicFetchTestCases_ambient() {
-    expectSuccess(fetch('http://localhost:3000/good'), 'Good response');
+function test_fetchUrlWithOptions() {
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    const requestOptions: RequestInit = {
+        compress: true,
+        follow: 10,
+        headers,
+        method: "POST",
+        redirect: "manual",
+        size: 100,
+        timeout: 5000
+    };
+    handlePromise(
+        fetch("http://www.andlabs.net/html5/uCOR.php", requestOptions)
+    );
+}
 
-    fetch('http://localhost:3000/bad')
-        .then((response: Response) => {
-            return response.text();
-        })
-        .catch((err) => {
+function test_fetchUrlWithHeadersObject() {
+    const requestOptions: RequestInit = {
+        headers: {
+            "Content-Type": "application/json"
+        },
+        method: "POST"
+    };
+    handlePromise(
+        fetch("http://www.andlabs.net/html5/uCOR.php", requestOptions)
+    );
+}
+
+function test_fetchUrl() {
+    handlePromise(fetch("http://www.andlabs.net/html5/uCOR.php"));
+}
+
+function test_fetchUrlArrayBuffer() {
+    handlePromise(fetch("http://www.andlabs.net/html5/uCOR.php"), true);
+}
+
+function test_fetchUrlWithRequestObject() {
+    const requestOptions: RequestInit = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+    const request: Request = new Request(
+        "http://www.andlabs.net/html5/uCOR.php",
+        requestOptions
+    );
+    const timeout: number = request.timeout;
+    const size: number = request.size;
+    const protocol: string = request.protocol;
+
+    handlePromise(fetch(request));
+}
+
+function test_globalFetchVar() {
+    fetch("http://test.com", {}).then(response => {
+        // for test only
+    });
+}
+
+function handlePromise(
+    promise: Promise<Response>,
+    isArrayBuffer: boolean = false
+) {
+    promise
+        .then(
+            (response): Promise<string | ArrayBuffer> => {
+                if (response.type === "basic") {
+                    // for test only
+                }
+                if (isArrayBuffer) {
+                    return response.arrayBuffer();
+                } else {
+                    return response.text();
+                }
+            }
+        )
+        .then((text: string | ArrayBuffer) => {
+            console.log(text);
         });
 }
 
-function test_isomorphicFetchTestCases_commonjs() {
-    expectSuccess(fetchImportedViaCommonJS('http://localhost:3000/good'), 'Good response');
+function test_headersRaw() {
+    const headers = new Headers();
+    const myHeader = "foo";
+    headers.raw()[myHeader]; // $ExpectType string[]
+}
 
-    fetchImportedViaCommonJS('http://localhost:3000/bad')
-        .then((response: Response) => {
-            return response.text();
-        })
-        .catch((err) => {
+function test_isRedirect() {
+    fetch.isRedirect(301);
+    fetch.isRedirect(201);
+}
+
+function test_FetchError() {
+    new FetchError("message", "type", "systemError");
+    new FetchError("message", "type");
+}
+
+function test_Blob() {
+    new Blob();
+    new Blob(["beep", "boop"]);
+    new Blob(["beep", "boop"], { endings: "native" });
+    new Blob(["beep", "boop"], { type: "text/plain" });
+}
+
+function test_ResponseInit() {
+    fetch("http://test.com", {}).then(response => {
+        new Response(response.body, {
+            url: response.url,
         });
-}
-
-function test_isomorphicFetchTestCases_es6() {
-    expectSuccess(fetchImportedViaES6Module('http://localhost:3000/good'), 'Good response');
-
-    fetchImportedViaES6Module('http://localhost:3000/bad')
-        .then((response: Response) => {
-            return response.text();
-        })
-        .catch((err) => {
+        new Response(response.body, {
+            url: response.url,
+            size: response.size,
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+            timeout: response.timeout
         });
-}
-
-function test_whatwgTestCases_ambient() {
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    let requestOptions: RequestInit = {
-        method: "POST",
-        headers,
-        mode: 'same-origin',
-        credentials: 'omit',
-        cache: 'default'
-    };
-
-    expectSuccess(fetch('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-
-    expectSuccess(fetch('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    const request: Request = new Request('http://localhost:3000/poster', requestOptions);
-
-    expectSuccess(fetch(request), 'Post response:');
-}
-
-function test_whatwgTestCases_commonjs() {
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    let requestOptions: RequestInit = {
-        method: "POST",
-        headers,
-        mode: 'same-origin',
-        credentials: 'omit',
-        cache: 'default'
-    };
-
-    expectSuccess(fetchImportedViaCommonJS('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-
-    expectSuccess(fetchImportedViaCommonJS('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    const request: Request = new Request('http://localhost:3000/poster', requestOptions);
-
-    expectSuccess(fetchImportedViaCommonJS(request), 'Post response:');
-}
-
-function test_whatwgTestCases_es6() {
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    let requestOptions: RequestInit = {
-        method: "POST",
-        headers,
-        mode: 'same-origin',
-        credentials: 'omit',
-        cache: 'default'
-    };
-
-    expectSuccess(fetchImportedViaES6Module('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-
-    expectSuccess(fetchImportedViaES6Module('http://localhost:3000/poster', requestOptions), 'Post response:');
-
-    requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    const request: Request = new Request('http://localhost:3000/poster', requestOptions);
-
-    expectSuccess(fetchImportedViaES6Module(request), 'Post response:');
-}
-
-function expectSuccess(promise: Promise<Response>, responseText: string) {
-    promise.then((response: Response) => {
-        return response.text();
-    })
-    .then((text: string) => {
     });
 }
