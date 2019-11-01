@@ -1557,6 +1557,7 @@ declare namespace webpack {
             append?: false | string;
             columns?: boolean;
             exclude?: Condition | Condition[];
+            fileContext?: string;
             fallbackModuleFilenameTemplate?: string;
             filename?: null | false | string;
             include?: Condition | Condition[];
@@ -1567,7 +1568,9 @@ declare namespace webpack {
             };
             module?: boolean;
             moduleFilenameTemplate?: string;
+            namespace?: string;
             noSources?: boolean;
+            publicPath?: string;
             sourceRoot?: null | string;
             test?: Condition | Condition[];
         }
